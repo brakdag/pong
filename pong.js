@@ -1,6 +1,32 @@
 // pong by brakdag@gmail.com 
 "use strict";
 
+/** TextBox class 
+ * 
+ * 
+*/
+var TextBox = function (json)
+{
+    this.x = 0;
+    this.y = 0;
+    this.text = "";
+    this.value = 0;
+    this.init(json);
+}
+TextBox.prototype.init = function(json)
+{
+ for(var i in json)
+        this[i]= json[i];   
+}
+TextBox.prototype.setText = function(text)
+{
+    this.text = text;
+}
+TextBox.prototype.draw = function(ctx)
+{
+ctx.fillText(this.text, this.x, this.y);    
+}
+
 /** Bar class 
  * 
  * 
@@ -78,7 +104,7 @@ var Game = function(json)
     this.status = "inicio";
     this.bars = [];
     this.balls = [];
-    this.score = 0;
+    this.score = [];
     this.init(json);
 }
 
@@ -92,48 +118,56 @@ Game.prototype.start = function()
     this.bars.push(new Bar({id:1,x:100,y:100}));
     this.bars.push(new Bar({x:(this.width-50)}));
     this.balls.push(new Ball({x:(this.width/2),y:(this.height/2)}));
+    this.score.push(new TextBox({x:this.width/2,y:20, text:"probando"}));
+    this.score.push(new TextBox({x:this.width/2,y:40, text:"test"}));
     this.loop();
+    this.frame();
 }
 
 Game.prototype.loop = function()
 {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-    this.ctx.fillText("score: " + this.score, this.width/2, 25);
     for(var i in this.balls)
     {
         this.balls[i].update();
-        this.balls[i].draw(this.ctx);
     }
 
-    for (var i in this.bars)
-    this.bars[i].draw(this.ctx);
+    this.score[1].setText(this.checkColision(this.balls[0],this.bars[0]));
+ 
     var self = this;
-    setTimeout(function(){self.loop();},20);
+    setTimeout(function(){self.loop();},200);
 }
 
+Game.prototype.frame = function()
+{
+this.ctx.clearRect(0, 0, this.width, this.height);
+for(var i in this.balls)
+    {
+        this.balls[i].draw(this.ctx);
+    } 
+for (var i in this.bars)
+    this.bars[i].draw(this.ctx);
+
+for (var i in this.score)
+    this.score[i].draw(this.ctx);
+
+var self = this;
+requestAnimationFrame(function(){self.frame();});
+}
+
+//trabajar aqui
 Game.prototype.checkColision = function (obj1,obj2)
 {
-    //colisión eje x
-    var colx = false;
-    var coly = false;
+var rect1 = {x: obj1.x, y: obj1.y, width: obj1.width, height: obj1.height}
+var rect2 = {x: obj2.x, y: obj2.y, width: obj2.width, height: obj2.height}
 
-    for (var i = obj1.x; i<(obj1.x+obj1.width);i++)
+if (rect1.x < rect2.x + rect2.width &&
+   rect1.x + rect1.width > rect2.x &&
+   rect1.y < rect2.y + rect2.height &&
+   rect1.height + rect1.y > rect2.y)
     {
-        if ((i> obj2.x) && (i< obj2.x+obj2.width))
-            colx=true;
+    return true;
     }
-    //Colisión eje y
- 
-    for (var i = obj1.y; i<(obj1.y+obj1.height);i++)
-    {
-        if ((i> obj2.y) && (i < (obj2.y+obj2.height))) coly = true;
-    }
-
-    console.log(colx + coly);
-    if ((colx==true) && (coly==true)) 
-        {return true;}
-    else
-        {return false;}
+    else return false;
 }
 
 
